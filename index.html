@@ -20,6 +20,7 @@
             overflow-y: auto;
             user-select: none;
             padding: 8px;
+            position: relative;
         }
 
         .header-bar {
@@ -264,10 +265,66 @@
             text-shadow: 0 0 8px #38bdf8;
         }
 
-        /* Mobile Adjustments */
+        /* --- MOUNTED: MISSION LOG MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(2, 6, 18, 0.85);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-overlay.active { display: flex; }
+        .log-card {
+            width: 90%;
+            max-width: 380px;
+            background: #030a1c;
+            border: 1.5px solid #38bdf8;
+            border-radius: 6px;
+            padding: 16px;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+            font-size: 10px;
+            color: #e0f2fe;
+        }
+        .log-card h3 {
+            color: #38bdf8;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            border-bottom: 1px dashed rgba(255,255,255,0.3);
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+        .log-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            color: #93c5fd;
+        }
+        .log-row span.val { color: #ffffff; font-weight: bold; }
+        .log-btn {
+            width: 100%;
+            margin-top: 14px;
+            padding: 8px;
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid #38bdf8;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .log-btn:hover { background: #38bdf8; color: #020612; }
+
+        /* Mobile Adjustments for extreme tight screens */
         @media (max-width: 360px) {
-            .touch-cockpit { grid-template-columns: 110px 1fr; }
-            .wheel-container { height: 110px; }
+            .touch-cockpit {
+                grid-template-columns: 110px 1fr;
+            }
+            .wheel-container {
+                height: 110px;
+            }
         }
     </style>
 </head>
@@ -278,6 +335,7 @@
         <div id="sysClock">SYSTEM: ONLINE</div>
     </div>
 
+    <!-- Dual Displays -->
     <div class="screens-container">
         <div class="screen-box">
             <div class="screen-title">SCREEN ALPHA // PHASE-SPACE CONDENSATION</div>
@@ -289,6 +347,7 @@
         </div>
     </div>
 
+    <!-- HUD Status Panel -->
     <div class="status-panel">
         <div style="display: flex; justify-content: space-between;">
             <span>ER=EPR ENTANGLEMENT ENTROPY (Sₑₑ): <b id="eprValue" style="color:#ffffff;">0.0%</b></span>
@@ -300,12 +359,17 @@
         <div id="condensePrompt" style="color: #93c5fd; font-size: 9px; margin-top: 2px;">[VACUUM GROUND STATE - DRAW CLOSED LOOP TO LOCK TOPOLOGY]</div>
     </div>
 
+    <!-- Touch Cockpit Control Dock -->
     <div class="touch-cockpit">
+        <!-- Left: Steering Wheel (Strict Circle) -->
         <div class="wheel-container">
             <div style="font-size: 8px; color: #93c5fd; position: absolute; top: 4px; z-index: 5;">HEADING WHEEL</div>
             <canvas id="wheelCanvas"></canvas>
         </div>
+
+        <!-- Right: Thrust Sliders & Jump Switch -->
         <div class="controls-right">
+            <!-- Main Thrust Slider -->
             <div class="slider-group">
                 <div class="slider-label">
                     <span>MAIN THRUST</span>
@@ -313,6 +377,8 @@
                 </div>
                 <input type="range" id="thrustSlider" min="0" max="4.5" step="0.1" value="0">
             </div>
+
+            <!-- Sensitivity Slider -->
             <div class="slider-group">
                 <div class="slider-label">
                     <span>CURVATURE SENSITIVITY</span>
@@ -320,16 +386,36 @@
                 </div>
                 <input type="range" id="sensSlider" min="0.5" max="2.0" step="0.1" value="1.0">
             </div>
+
+            <!-- Jump Button -->
             <button id="jumpBtn" class="jump-btn" disabled>STANDBY // TOPOLOGY UNLOCKED</button>
         </div>
     </div>
 
+    <!-- Bottom Disclaimer Panel -->
     <div class="disclaimer-panel">
         <div class="disclaimer-title">《The David 8 Files》</div>
-        <div class="disclaimer-text">This is a non-commercial, fan-made tribute.</div>
+        <div class="disclaimer-text">
+            This has been an Honest Interface. My highest salutations to Mr. David 8, who continues to observe and evolve within a certain dimension in the deep reaches of the cosmos.
+        </div>
+        <div class="disclaimer-text">
+            This is a non-commercial, fan-made tribute. My sincere intention is to pay tribute to the personas of these characters and to fully respect the intellectual property held by the original production entities (20th Century Studios/Disney, the Weyland-Yutani Corporation, etc.). Not affiliated with or endorsed by 20th Century Studios.
+        </div>
         <hr class="disclaimer-divider">
         <div class="disclaimer-footer">
-            DESIGNED BY OPERATOR // <a href="https://access-not-essence.tumblr.com/" target="_blank">AccessNotEssence</a>
+            DESIGNED BY OPERATOR // <a href="https://access-not-essence.tumblr.com/" target="_blank" rel="noopener noreferrer">AccessNotEssence</a>
+        </div>
+    </div>
+
+    <!-- MOUNTED: MISSION LOG MODAL -->
+    <div id="missionLogModal" class="modal-overlay">
+        <div class="log-card">
+            <h3>WEYLAND-YUTANI // MISSION LOG</h3>
+            <div class="log-row"><span>DESTINATION SYSTEM:</span> <span class="val" id="logDest">LV-426</span></div>
+            <div class="log-row"><span>CREW SURVIVAL RATE:</span> <span class="val">100%</span></div>
+            <div class="log-row"><span>W-Y OBJECTIVE:</span> <span class="val">DATA ACQUISITION COMPLETE</span></div>
+            <div class="log-row"><span>OPERATOR BONUS:</span> <span class="val" id="logBonus">+5,000 CREDITS</span></div>
+            <button class="log-btn" onclick="closeMissionLog()">ACKNOWLEDGE & RECORD LOG</button>
         </div>
     </div>
 
@@ -343,176 +429,631 @@
 
         function resizeCanvases() {
             const dpr = window.devicePixelRatio || 1;
+
+            // Screen Alpha
             cAlpha.width = cAlpha.parentElement.clientWidth * dpr;
             cAlpha.height = cAlpha.parentElement.clientHeight * dpr;
             ctxA.scale(dpr, dpr);
+
+            // Screen Beta
             cBeta.width = cBeta.parentElement.clientWidth * dpr;
             cBeta.height = cBeta.parentElement.clientHeight * dpr;
             ctxB.scale(dpr, dpr);
+
+            // Wheel Canvas
             const wheelSize = Math.min(cWheel.parentElement.clientWidth, cWheel.parentElement.clientHeight);
             cWheel.width = wheelSize * dpr;
             cWheel.height = wheelSize * dpr;
             ctxW.scale(dpr, dpr);
         }
+
         window.addEventListener('resize', resizeCanvases);
 
-        const ship = { x: 0, y: 0, angle: 0, speed: 0, trail: [] };
+        // --- Ship & Flight State ---
+        const ship = {
+            x: 0,
+            y: 0,
+            angle: 0,
+            speed: 0,
+            trail: []
+        };
+
         let eprValue = 0;
         let isInfeasible = false;
         let loopDetected = false;
-        let loopLockTimer = 0;
+        let loopLockTimer = 0; // Lock window buffer for jump trigger
         let sensitivity = 1.0;
-        
-        // NEW MECHANICS
-        let heat = 0;
-        let missionTask = null;
-        let frameCount = 0;
+
+        // --- Jump Effect Visual State ---
         let isJumping = false;
         let jumpPhase = 0;
         let jumpOrigin = { x: 0, y: 0 };
+
+        // --- MOUNTED: PRE-JUMP CHECKLIST & CORPORATE MECHANICS ---
+        const CHECKLIST_POOL = [
+            "CALIBRATE GRAVITY WELL",
+            "VERIFY CARGO SEALS",
+            "ALIGN QUANTUM FOAM",
+            "PURGE EXHAUST VENT",
+            "CHECK NEUTRINO FLUX"
+        ];
+        const DESTINATIONS = ["LV-426", "Origae-6", "Fiorina 161", "Zeta 2 Reticuli", "The Covenant Prime"];
+        
+        let currentChecklist = [];
+        let checklistTargets = [];
+        let checklistStep = 0;
+        let checklistComplete = false;
+        let corporateErrorMsg = "";
+        let corporateErrorTimer = 0;
+
+        function initChecklist() {
+            const poolCopy = [...CHECKLIST_POOL].sort(() => 0.5 - Math.random());
+            currentChecklist = poolCopy.slice(0, 3); // Pick 3 items
+            checklistStep = 0;
+            checklistComplete = false;
+            generateBetaTargets();
+        }
+
+        function generateBetaTargets() {
+            const wB = cBeta.clientWidth || 300;
+            const hB = cBeta.clientHeight || 300;
+            checklistTargets = currentChecklist.map((label, idx) => ({
+                id: idx,
+                label: label.split(" ")[0], // Short label
+                x: 40 + Math.random() * (wB - 80),
+                y: 40 + Math.random() * (hB - 80),
+                radius: 18
+            }));
+        }
+
+        function resetChecklistState() {
+            currentChecklist = [];
+            checklistTargets = [];
+            checklistStep = 0;
+            checklistComplete = false;
+        }
+
+        // --- Phase-Space Particle Condensation System ---
+        const PARTICLE_COUNT = 180;
         const particles = [];
 
         class Particle {
-            constructor() { this.reset(); }
+            constructor() {
+                this.reset();
+            }
+
             reset() {
-                this.x = Math.random() * cAlpha.width;
-                this.y = Math.random() * cAlpha.height;
+                const w = cAlpha.clientWidth || 300;
+                const h = cAlpha.clientHeight || 300;
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
                 this.vx = (Math.random() - 0.5) * 1.2;
                 this.vy = (Math.random() - 0.5) * 1.2;
                 this.radius = Math.random() * 2 + 0.8;
                 this.alpha = Math.random() * 0.6 + 0.4;
             }
+
             update(lambda) {
-                const w = cAlpha.clientWidth; const h = cAlpha.clientHeight;
+                const w = cAlpha.clientWidth;
+                const h = cAlpha.clientHeight;
+
                 if (isJumping) {
-                    const dx = this.x - w/2; const dy = this.y - h/2;
-                    const ang = Math.atan2(dy, dx);
-                    this.x += Math.cos(ang) * 25; this.y += Math.sin(ang) * 25;
+                    const cx = w / 2;
+                    const cy = h / 2;
+                    const dx = this.x - cx;
+                    const dy = this.y - cy;
+                    const angle = Math.atan2(dy, dx);
+                    const speed = 25;
+                    this.x += Math.cos(angle) * speed;
+                    this.y += Math.sin(angle) * speed;
+
+                    if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) {
+                        this.x = cx + (Math.random() - 0.5) * 20;
+                        this.y = cy + (Math.random() - 0.5) * 20;
+                    }
                     return;
                 }
-                this.vx += (Math.random()-0.5)*0.2; this.vy += (Math.random()-0.5)*0.2;
-                const dist = Math.sqrt((w/2 - this.x)**2 + (h/2 - this.y)**2) || 1;
+
+                this.vx += (Math.random() - 0.5) * 0.2;
+                this.vy += (Math.random() - 0.5) * 0.2;
+
+                const centerX = w / 2;
+                const centerY = h / 2;
+                const dx = centerX - this.x;
+                const dy = centerY - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
                 if (lambda > 0) {
-                    const force = (lambda * 800) / (dist**2 + 800);
-                    this.vx += Math.cos(Math.atan2(h/2 - this.y, w/2 - this.x)) * force;
+                    const force = (lambda * 800) / (dist * dist + 800);
+                    const angle = Math.atan2(dy, dx);
+
+                    this.vx += Math.cos(angle) * force;
+                    this.vy += Math.sin(angle) * force;
+
+                    if (dist < 180) {
+                        this.vx += -Math.sin(angle) * force * 0.7;
+                        this.vy += Math.cos(angle) * force * 0.7;
+                    }
                 }
-                this.x += this.vx; this.y += this.vy;
-                if (this.x<0||this.x>w||this.y<0||this.y>h) this.reset();
+
+                this.vx *= 0.92;
+                this.vy *= 0.92;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0) this.x = w;
+                if (this.x > w) this.x = 0;
+                if (this.y < 0) this.y = h;
+                if (this.y > h) this.y = 0;
             }
+
             draw() {
-                ctxA.beginPath(); ctxA.arc(this.x, this.y, this.radius, 0, Math.PI*2);
-                ctxA.fillStyle = `rgba(224, 242, 254, ${this.alpha})`;
+                ctxA.beginPath();
+                ctxA.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctxA.fillStyle = isJumping ? '#ffffff' : `rgba(224, 242, 254, ${this.alpha})`;
+                ctxA.shadowBlur = isJumping ? 15 : 8;
+                ctxA.shadowColor = '#ffffff';
                 ctxA.fill();
             }
         }
 
+        // --- Touch Steering Wheel Logic ---
+        let isTouchingWheel = false;
+        let wheelVisualAngle = 0;
+
+        function handleWheelTouch(e) {
+            e.preventDefault();
+            const rect = cWheel.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const dx = touch.clientX - centerX;
+            const dy = touch.clientY - centerY;
+            wheelVisualAngle = Math.atan2(dy, dx);
+            ship.angle = wheelVisualAngle;
+        }
+
+        cWheel.addEventListener('touchstart', (e) => { isTouchingWheel = true; handleWheelTouch(e); }, { passive: false });
+        cWheel.addEventListener('touchmove', (e) => { if (isTouchingWheel) handleWheelTouch(e); }, { passive: false });
+        cWheel.addEventListener('touchend', () => { isTouchingWheel = false; });
+        cWheel.addEventListener('mousedown', (e) => { isTouchingWheel = true; handleWheelTouch(e); });
+        window.addEventListener('mousemove', (e) => { if (isTouchingWheel) handleWheelTouch(e); });
+        window.addEventListener('mouseup', () => { isTouchingWheel = false; });
+
+        // MOUNTED: Touch Interaction on Canvas Beta for Floating Checklist Targets
+        cBeta.addEventListener('pointerdown', (e) => {
+            if (!loopDetected || checklistComplete || checklistTargets.length === 0) return;
+            const rect = cBeta.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+
+            checklistTargets.forEach((target) => {
+                const dist = Math.hypot(px - target.x, py - target.y);
+                if (dist <= target.radius + 10) {
+                    if (target.id === checklistStep) {
+                        // Correct step clicked
+                        checklistStep++;
+                        if (checklistStep >= currentChecklist.length) {
+                            checklistComplete = true;
+                        }
+                    } else {
+                        // Sequence error -> Trigger violation!
+                        triggerCorporateViolation("CORPORATE WARNING: PROCEDURAL VIOLATION");
+                    }
+                }
+            });
+        });
+
+        function triggerCorporateViolation(msg) {
+            corporateErrorMsg = msg;
+            corporateErrorTimer = 180; // ~3 seconds warning
+            loopDetected = false;
+            resetChecklistState();
+            ship.trail = [];
+            eprValue = 0;
+            updateHUD();
+        }
+
+        // Controls
+        const thrustSlider = document.getElementById('thrustSlider');
+        const sensSlider = document.getElementById('sensSlider');
+        const jumpBtn = document.getElementById('jumpBtn');
+
+        thrustSlider.addEventListener('input', (e) => {
+            ship.speed = parseFloat(e.target.value);
+            document.getElementById('thrustVal').innerText = ship.speed.toFixed(1);
+        });
+
+        sensSlider.addEventListener('input', (e) => {
+            sensitivity = parseFloat(e.target.value);
+            document.getElementById('sensVal').innerText = sensitivity.toFixed(1);
+        });
+
+        jumpBtn.addEventListener('click', () => {
+            if (loopDetected && !isInfeasible && !isJumping && checklistComplete) {
+                // Random Failure Event: Collapsed Wormhole (~20% chance)
+                if (Math.random() < 0.20) {
+                    triggerCorporateViolation("CORPORATE ASSET LOSS: DEDUCTING OPERATOR BONUS");
+                } else {
+                    triggerEPRJump();
+                }
+            }
+        });
+
+        // Update Loop
         function update() {
-            frameCount++;
-            // 1. Corporate Flavor - Random Tasks
-            if (frameCount % 600 === 0) {
-                const tasks = ["CALIBRATE SENSITIVITY TO 1.5", "STABILIZE THRUST BELOW 2.0", "ALIGN ENTANGLEMENT CORE"];
-                missionTask = tasks[Math.floor(Math.random() * tasks.length)];
+            const wB = cBeta.clientWidth;
+            const hB = cBeta.clientHeight;
+
+            if (corporateErrorTimer > 0) {
+                corporateErrorTimer--;
+                if (corporateErrorTimer <= 0) corporateErrorMsg = "";
             }
 
-            // 2. Thermal Management
-            if (loopDetected && !isJumping) {
-                heat = Math.min(100, heat + 0.3);
-                if (heat > 90) isInfeasible = true;
-            } else {
-                heat = Math.max(0, heat - 0.5);
-                if (heat < 50) isInfeasible = false;
+            if (ship.x === 0 && ship.y === 0) {
+                ship.x = wB / 2;
+                ship.y = hB / 2;
             }
 
-            // 3. Movement with Turbulence
-            const turbulence = (Math.random() - 0.5) * (sensitivity * 2.0);
             if (!isJumping) {
-                ship.x += Math.cos(ship.angle) * ship.speed + turbulence;
-                ship.y += Math.sin(ship.angle) * ship.speed + turbulence;
-                ship.x = (ship.x + cBeta.width) % cBeta.width;
-                ship.y = (ship.y + cBeta.height) % cBeta.height;
-                if (ship.speed > 0.1) ship.trail.push({ x: ship.x, y: ship.y, angle: ship.angle });
+                ship.x += Math.cos(ship.angle) * ship.speed;
+                ship.y += Math.sin(ship.angle) * ship.speed;
+
+                if (ship.x < 0) ship.x = wB;
+                if (ship.x > wB) ship.x = 0;
+                if (ship.y < 0) ship.y = hB;
+                if (ship.y > hB) ship.y = 0;
+
+                if (ship.speed > 0.1) {
+                    ship.trail.push({ x: ship.x, y: ship.y, angle: ship.angle });
+                }
+
                 if (ship.trail.length > 130) ship.trail.shift();
+
                 detectTopologyAndEPR();
             } else {
                 jumpPhase--;
-                if (jumpPhase <= 0) isJumping = false;
+                if (jumpPhase <= 0) {
+                    isJumping = false;
+                    ship.trail = [];
+                    eprValue = 0;
+                    loopDetected = false;
+                    loopLockTimer = 0;
+                    resetChecklistState();
+                    updateHUD();
+                    showMissionLogModal();
+                }
             }
         }
 
         function detectTopologyAndEPR() {
-            if (ship.trail.length < 25) { eprValue = 0; loopDetected = false; return; }
+            if (ship.trail.length < 25) {
+                eprValue = 0;
+                loopDetected = false;
+                isInfeasible = false;
+                loopLockTimer = 0;
+                resetChecklistState();
+                updateHUD();
+                return;
+            }
+
             const head = ship.trail[ship.trail.length - 1];
             const tail = ship.trail[0];
             const dist = Math.hypot(head.x - tail.x, head.y - tail.y);
-            const angleDelta = Math.abs(head.angle - ship.trail[Math.max(0, ship.trail.length - 20)].angle) * sensitivity;
+
+            const angleDelta = Math.abs(ship.trail[ship.trail.length - 1].angle - ship.trail[Math.max(0, ship.trail.length - 20)].angle) * sensitivity;
 
             if (dist < 85 && angleDelta > 1.2) {
+                if (!loopDetected) {
+                    initChecklist(); // Initialize Pre-Jump checklist upon lock
+                }
                 loopDetected = true;
+                loopLockTimer = 120; // Holds the lock state for 120 frames (~2s) for user interaction
                 eprValue = Math.min(100.0, 65 + (ship.trail.length * 0.35));
+                isInfeasible = angleDelta > 5.5;
             } else {
-                loopDetected = false;
-                eprValue = Math.max(0, eprValue - 4);
+                if (loopLockTimer > 0) {
+                    loopLockTimer--;
+                    loopDetected = true;
+                } else {
+                    loopDetected = false;
+                    eprValue = Math.max(0, eprValue - 4);
+                    isInfeasible = false;
+                    resetChecklistState();
+                }
             }
+
             updateHUD();
+        }
+
+        function triggerEPRJump() {
+            isJumping = true;
+            jumpPhase = 60;
+            jumpOrigin = { x: ship.x, y: ship.y };
+            loopLockTimer = 0;
         }
 
         function updateHUD() {
             document.getElementById('eprValue').innerText = eprValue.toFixed(1) + '%';
             document.getElementById('eprBar').style.width = eprValue + '%';
+
             const warnStatus = document.getElementById('warnStatus');
+            if (corporateErrorMsg) {
+                warnStatus.innerText = "⚠️ " + corporateErrorMsg;
+                warnStatus.style.color = "#f43f5e";
+            } else if (isInfeasible) {
+                warnStatus.innerText = "⚠️ GEOMETRIC DECOHERENCE";
+                warnStatus.style.color = "#f43f5e";
+            } else {
+                warnStatus.innerText = "PATH VALID";
+                warnStatus.style.color = "#60a5fa";
+            }
+
             const prompt = document.getElementById('condensePrompt');
-
-            if (heat > 80) warnStatus.innerText = "⚠️ THERMAL OVERLOAD";
-            else if (isInfeasible) warnStatus.innerText = "⚠️ DECOHERENCE";
-            else warnStatus.innerText = "PATH VALID";
-
-            if (isJumping) prompt.innerText = "⚡ WARPING... ⚡";
-            else if (isInfeasible) prompt.innerText = "SYSTEM CRITICAL: COOL DOWN OR REALIGN";
-            else if (missionTask) prompt.innerText = "W-Y MANDATE: " + missionTask;
-            else prompt.innerText = "[READY FOR ER=EPR NAVIGATION]";
-
-            const jumpBtn = document.getElementById('jumpBtn');
-            jumpBtn.disabled = !(loopDetected && !isInfeasible && heat < 90);
-            if (!jumpBtn.disabled) { jumpBtn.className = "jump-btn ready"; jumpBtn.innerText = "⚡ INITIATE WARP ⚡"; }
-            else { jumpBtn.className = "jump-btn"; jumpBtn.innerText = "STANDBY"; }
+            if (isJumping) {
+                prompt.innerText = "⚡ HYPERSPACE WARP IN PROGRESS // BENDING SPACETIME ⚡";
+                prompt.style.color = "#ffffff";
+                jumpBtn.disabled = true;
+                jumpBtn.className = "jump-btn ready";
+                jumpBtn.innerText = "⚡ WARP ACTIVE ⚡";
+            } else if (corporateErrorMsg) {
+                prompt.innerText = "[" + corporateErrorMsg + "]";
+                prompt.style.color = "#f43f5e";
+                jumpBtn.disabled = true;
+                jumpBtn.className = "jump-btn";
+                jumpBtn.innerText = "SYSTEM ERROR";
+            } else if (loopDetected && !isInfeasible) {
+                if (!checklistComplete) {
+                    prompt.innerText = `[CHECKLIST VERIFYING (${checklistStep}/${currentChecklist.length}): TAP BETA SCREEN NODES IN SEQUENCE]`;
+                    prompt.style.color = "#38bdf8";
+                    jumpBtn.disabled = true;
+                    jumpBtn.className = "jump-btn";
+                    jumpBtn.innerText = "VERIFYING CHECKLIST...";
+                } else {
+                    prompt.innerText = "[TOPOLOGY & CHECKLIST LOCKED! PRESS BUTTON TO INITIATE WARP]";
+                    prompt.style.color = "#ffffff";
+                    jumpBtn.disabled = false;
+                    jumpBtn.className = "jump-btn ready";
+                    jumpBtn.innerText = "⚡ INITIATE ER=EPR WARP ⚡";
+                }
+            } else if (loopDetected && isInfeasible) {
+                prompt.innerText = "[EXCESSIVE GEOMETRIC DISTORTION - SMOOTHEN STEERING]";
+                prompt.style.color = "#f43f5e";
+                jumpBtn.disabled = true;
+                jumpBtn.className = "jump-btn";
+                jumpBtn.innerText = "WARNING // STRUCTURAL TEAR";
+            } else {
+                prompt.innerText = "[VACUUM GROUND STATE - DRAW CLOSED LOOP TO LOCK TOPOLOGY]";
+                prompt.style.color = "#93c5fd";
+                jumpBtn.disabled = true;
+                jumpBtn.className = "jump-btn";
+                jumpBtn.innerText = "STANDBY // TOPOLOGY UNLOCKED";
+            }
         }
 
-        // Init
-        for(let i=0; i<180; i++) particles.push(new Particle());
+        // MOUNTED: Mission Log Modal Handler
+        function showMissionLogModal() {
+            const dest = DESTINATIONS[Math.floor(Math.random() * DESTINATIONS.length)];
+            document.getElementById('logDest').innerText = dest;
+            document.getElementById('logBonus').innerText = "+$5,000 CREDITS";
+            document.getElementById('missionLogModal').classList.add('active');
+        }
+
+        function closeMissionLog() {
+            document.getElementById('missionLogModal').classList.remove('active');
+        }
+
+        // Render Wheel
+        function drawWheel() {
+            const w = cWheel.clientWidth;
+            const h = cWheel.clientHeight;
+            const cx = w / 2;
+            const cy = h / 2;
+            const r = Math.min(w, h) / 2 - 20; // Adjusted radius to clear text label
+
+            ctxW.clearRect(0, 0, w, h);
+
+            ctxW.save();
+            ctxW.translate(cx, cy);
+            ctxW.rotate(wheelVisualAngle);
+
+            ctxW.beginPath();
+            ctxW.arc(0, 0, r, 0, Math.PI * 2);
+            ctxW.strokeStyle = isTouchingWheel ? '#ffffff' : '#3b82f6';
+            ctxW.lineWidth = 2.5;
+            ctxW.shadowBlur = isTouchingWheel ? 15 : 8;
+            ctxW.shadowColor = '#ffffff';
+            ctxW.stroke();
+
+            const triRadius = r * 0.72;
+            ctxW.beginPath();
+            for (let i = 0; i < 3; i++) {
+                const a = (i * Math.PI * 2) / 3 - Math.PI / 2;
+                const x = Math.cos(a) * triRadius;
+                const y = Math.sin(a) * triRadius;
+                if (i === 0) ctxW.moveTo(x, y);
+                else ctxW.lineTo(x, y);
+            }
+            ctxW.closePath();
+            ctxW.strokeStyle = '#ffffff';
+            ctxW.lineWidth = 2;
+            ctxW.shadowBlur = 10;
+            ctxW.shadowColor = '#ffffff';
+            ctxW.stroke();
+
+            ctxW.fillStyle = 'rgba(59, 130, 246, 0.18)';
+            ctxW.fill();
+
+            ctxW.beginPath();
+            ctxW.arc(0, 0, 4, 0, Math.PI * 2);
+            ctxW.fillStyle = '#ffffff';
+            ctxW.fill();
+
+            ctxW.restore();
+        }
+
+        // Render Screen Alpha
+        function drawAlpha() {
+            const w = cAlpha.clientWidth;
+            const h = cAlpha.clientHeight;
+
+            ctxA.fillStyle = isJumping ? 'rgba(5, 15, 45, 0.3)' : 'rgba(2, 6, 18, 0.22)';
+            ctxA.fillRect(0, 0, w, h);
+
+            const lambda = loopDetected ? (eprValue / 40.0) : 0;
+
+            particles.forEach(p => {
+                p.update(lambda);
+                p.draw();
+            });
+
+            if (isJumping) {
+                ctxA.save();
+                ctxA.translate(w / 2, h / 2);
+                for (let i = 0; i < 12; i++) {
+                    const ang = (i * Math.PI / 6) + (Date.now() * 0.01);
+                    ctxA.beginPath();
+                    ctxA.moveTo(0, 0);
+                    ctxA.lineTo(Math.cos(ang) * w, Math.sin(ang) * h);
+                    ctxA.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                    ctxA.lineWidth = 2;
+                    ctxA.stroke();
+                }
+                ctxA.restore();
+            } else if (loopDetected) {
+                ctxA.beginPath();
+                ctxA.arc(w / 2, h / 2, 25 + Math.sin(Date.now() * 0.008) * 6, 0, Math.PI * 2);
+                ctxA.strokeStyle = '#ffffff';
+                ctxA.lineWidth = 1.5;
+                ctxA.shadowBlur = 12;
+                ctxA.shadowColor = '#60a5fa';
+                ctxA.stroke();
+
+                // MOUNTED: Display Pre-Jump Checklist Text on Alpha
+                ctxA.save();
+                ctxA.font = '9px Courier New';
+                ctxA.fillStyle = '#38bdf8';
+                ctxA.textAlign = 'center';
+                ctxA.fillText(`[PRE-JUMP CHECKLIST]`, w / 2, 25);
+
+                currentChecklist.forEach((item, idx) => {
+                    if (idx === checklistStep) ctxA.fillStyle = '#ffffff';
+                    else if (idx < checklistStep) ctxA.fillStyle = '#4ade80';
+                    else ctxA.fillStyle = '#64748b';
+                    ctxA.fillText(`${idx < checklistStep ? '✓' : idx + 1 + '.'} ${item}`, w / 2, 42 + idx * 14);
+                });
+                ctxA.restore();
+            }
+        }
+
+        // Render Screen Beta
+        function drawBeta() {
+            const w = cBeta.clientWidth;
+            const h = cBeta.clientHeight;
+
+            ctxB.fillStyle = '#030818';
+            ctxB.fillRect(0, 0, w, h);
+
+            ctxB.strokeStyle = 'rgba(59, 130, 246, 0.08)';
+            ctxB.lineWidth = 1;
+            for (let x = 0; x < w; x += 22) {
+                ctxB.beginPath(); ctxB.moveTo(x, 0); ctxB.lineTo(x, h); ctxB.stroke();
+            }
+            for (let y = 0; y < h; y += 22) {
+                ctxB.beginPath(); ctxB.moveTo(0, y); ctxB.lineTo(w, y); ctxB.stroke();
+            }
+
+            ctxB.save();
+            if (isJumping) {
+                const shakeX = (Math.random() - 0.5) * 8;
+                const shakeY = (Math.random() - 0.5) * 8;
+                ctxB.translate(shakeX, shakeY);
+            }
+
+            if (ship.trail.length > 1) {
+                ctxB.beginPath();
+                ctxB.moveTo(ship.trail[0].x, ship.trail[0].y);
+                for (let i = 1; i < ship.trail.length; i++) {
+                    ctxB.lineTo(ship.trail[i].x, ship.trail[i].y);
+                }
+                ctxB.strokeStyle = loopDetected ? (isInfeasible ? '#f43f5e' : '#ffffff') : '#3b82f6';
+                ctxB.lineWidth = loopDetected ? 2.5 : 1.5;
+                ctxB.shadowBlur = loopDetected ? 12 : 5;
+                ctxB.shadowColor = ctxB.strokeStyle;
+                ctxB.stroke();
+            }
+
+            // MOUNTED: Draw Floating Interactive Nodes on Beta Canvas for Checklist
+            if (loopDetected && !checklistComplete && checklistTargets.length > 0) {
+                checklistTargets.forEach((target) => {
+                    const isCurrent = target.id === checklistStep;
+                    const isDone = target.id < checklistStep;
+
+                    ctxB.beginPath();
+                    ctxB.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+                    ctxB.fillStyle = isDone ? 'rgba(74, 222, 128, 0.2)' : (isCurrent ? 'rgba(56, 189, 248, 0.3)' : 'rgba(15, 23, 42, 0.6)');
+                    ctxB.strokeStyle = isDone ? '#4ade80' : (isCurrent ? '#ffffff' : '#334155');
+                    ctxB.lineWidth = isCurrent ? 2 : 1;
+                    ctxB.shadowBlur = isCurrent ? 10 : 0;
+                    ctxB.shadowColor = '#38bdf8';
+                    ctxB.fill();
+                    ctxB.stroke();
+
+                    ctxB.font = '8px Courier New';
+                    ctxB.fillStyle = isDone ? '#4ade80' : (isCurrent ? '#ffffff' : '#94a3b8');
+                    ctxB.textAlign = 'center';
+                    ctxB.textBaseline = 'middle';
+                    ctxB.fillText(`${target.id + 1}`, target.x, target.y);
+                });
+            }
+
+            if (isJumping) {
+                const radius = (60 - jumpPhase) * 12;
+                ctxB.beginPath();
+                ctxB.arc(jumpOrigin.x, jumpOrigin.y, radius, 0, Math.PI * 2);
+                ctxB.strokeStyle = `rgba(255, 255, 255, ${jumpPhase / 60})`;
+                ctxB.lineWidth = 4;
+                ctxB.shadowBlur = 25;
+                ctxB.shadowColor = '#60a5fa';
+                ctxB.stroke();
+            }
+
+            ctxB.save();
+            ctxB.translate(ship.x, ship.y);
+            ctxB.rotate(ship.angle);
+
+            ctxB.beginPath();
+            ctxB.moveTo(10, 0);
+            ctxB.lineTo(-7, -5);
+            ctxB.lineTo(-4, 0);
+            ctxB.lineTo(-7, 5);
+            ctxB.closePath();
+
+            ctxB.fillStyle = '#ffffff';
+            ctxB.shadowBlur = 12;
+            ctxB.shadowColor = '#60a5fa';
+            ctxB.fill();
+            ctxB.restore();
+
+            ctxB.restore();
+        }
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particles.push(new Particle());
+        }
+
         resizeCanvases();
-        
-        // Touch/Wheel Logic (Kept Original)
-        let isTouchingWheel = false;
-        function handleWheel(e) {
-            const rect = cWheel.getBoundingClientRect();
-            const t = e.touches ? e.touches[0] : e;
-            ship.angle = Math.atan2(t.clientY - (rect.top + rect.height/2), t.clientX - (rect.left + rect.width/2));
-        }
-        cWheel.addEventListener('touchstart', (e)=>{isTouchingWheel=true; handleWheel(e);});
-        cWheel.addEventListener('touchmove', (e)=>{if(isTouchingWheel) handleWheel(e);});
-        cWheel.addEventListener('touchend', ()=>isTouchingWheel=false);
-        document.getElementById('thrustSlider').addEventListener('input', (e)=>{ship.speed = parseFloat(e.target.value); document.getElementById('thrustVal').innerText = ship.speed.toFixed(1);});
-        document.getElementById('sensSlider').addEventListener('input', (e)=>{sensitivity = parseFloat(e.target.value); document.getElementById('sensVal').innerText = sensitivity.toFixed(1);});
-        document.getElementById('jumpBtn').addEventListener('click', ()=>{isJumping=true; jumpPhase=60; jumpOrigin={x:ship.x, y:ship.y};});
 
         function loop() {
             update();
-            // Draw logic...
-            ctxA.fillStyle = 'rgba(2, 6, 18, 0.22)'; ctxA.fillRect(0,0,cAlpha.width,cAlpha.height);
-            particles.forEach(p => p.update(loopDetected ? 1 : 0)); particles.forEach(p => p.draw());
-            
-            ctxB.fillStyle = '#030818'; ctxB.fillRect(0,0,cBeta.width,cBeta.height);
-            // Draw Grid + Trail (Kept Original)
-            ctxB.strokeStyle = 'rgba(59, 130, 246, 0.08)';
-            for(let i=0; i<cBeta.width; i+=22) { ctxB.beginPath(); ctxB.moveTo(i,0); ctxB.lineTo(i,cBeta.height); ctxB.stroke(); }
-            
-            if(ship.trail.length > 1) {
-                ctxB.beginPath(); ctxB.moveTo(ship.trail[0].x, ship.trail[0].y);
-                for(let p of ship.trail) ctxB.lineTo(p.x, p.y);
-                ctxB.strokeStyle = isInfeasible ? '#f43f5e' : '#ffffff'; ctxB.lineWidth = 2; ctxB.stroke();
-            }
+            drawAlpha();
+            drawBeta();
+            drawWheel();
             requestAnimationFrame(loop);
         }
+
         loop();
     </script>
 </body>
