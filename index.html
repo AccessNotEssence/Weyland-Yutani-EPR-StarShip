@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Weyland-Yutani // Deep Blue Touch Bridge</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+        body {
+            background-color: #020612;
+            color: #e0f2fe;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
+            overflow-y: auto;
+            user-select: none;
+            padding: 8px;
+        }
+
+        .header-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(6, 15, 36, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Dual Display Screens */
+        .screens-container {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+            height: 32vh;
+            min-height: 220px;
+        }
+
+        .screen-box {
+            flex: 1;
+            position: relative;
+            background: #030818;
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.08) inset, 0 0 8px rgba(10, 30, 80, 0.5);
+        }
+
+        .screen-title {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            font-size: 8.5px;
+            background: rgba(4, 10, 26, 0.85);
+            padding: 2px 5px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 3px;
+            z-index: 10;
+            color: #ffffff;
+            text-shadow: 0 0 4px #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        canvas { width: 100%; height: 100%; display: block; }
+
+        /* Status Panel */
+        .status-panel {
+            width: 100%;
+            background: rgba(6, 15, 36, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 8px 10px;
+            border-radius: 4px;
+            margin: 6px 0;
+            font-size: 10px;
+        }
+
+        .bar-container {
+            width: 100%;
+            background: #061024;
+            height: 8px;
+            border-radius: 2px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin: 5px 0;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #1e40af, #60a5fa, #ffffff);
+            box-shadow: 0 0 8px #ffffff;
+            transition: width 0.1s ease;
+        }
+
+        /* Touch Cockpit Control Dock */
+        .touch-cockpit {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(4, 10, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+            margin-bottom: 8px;
+        }
+
+        /* Left: Steering Wheel Container */
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            background: rgba(10, 25, 60, 0.2);
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #wheelCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Right: Controls & Jump Trigger */
+        .controls-right {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: rgba(10, 20, 45, 0.7);
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .slider-label {
+            font-size: 8.5px;
+            display: flex;
+            justify-content: space-between;
+            color: #93c5fd;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #0a1836;
+            height: 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 10px #ffffff, 0 0 15px #3b82f6;
+            cursor: pointer;
+            border: 2px solid #1d4ed8;
+        }
+
+        .jump-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(30, 58, 138, 0.3);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            color: #93c5fd;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            text-align: center;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        .jump-btn.ready {
+            background: rgba(59, 130, 246, 0.5);
+            border-color: #ffffff;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 25px rgba(59, 130, 246, 0.7);
+            animation: pulse 0.8s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.98); }
+            100% { transform: scale(1.02); }
+        }
+
+        /* Bottom Disclaimer Panel */
+        .disclaimer-panel {
+            width: 100%;
+            background: rgba(6, 15, 36, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            padding: 16px 14px;
+            margin-top: 2px;
+            margin-bottom: 12px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        .disclaimer-title {
+            font-size: 12px;
+            color: #38bdf8;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+            font-weight: bold;
+        }
+
+        .disclaimer-text {
+            font-size: 9px;
+            line-height: 1.6;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            letter-spacing: 0.4px;
+        }
+
+        .disclaimer-divider {
+            border: none;
+            border-top: 1px dashed rgba(255, 255, 255, 0.2);
+            margin: 14px 0;
+        }
+
+        .disclaimer-footer {
+            font-size: 9.5px;
+            color: #64748b;
+            letter-spacing: 1px;
+        }
+
+        .disclaimer-footer a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+
+        .disclaimer-footer a:hover {
+            color: #ffffff;
+            text-shadow: 0 0 8px #38bdf8;
+        }
+
+        /* Mobile Adjustments for extreme tight screens */
+        @media (max-width: 360px) {
+            .touch-cockpit {
+                grid-template-columns: 110px 1fr;
+            }
+            .wheel-container {
+                height: 110px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <div>WEYLAND-YUTANI // DEEP BLUE BRIDGE</div>
+        <div id="sysClock">SYSTEM: ONLINE</div>
+    </div>
+
+    <!-- Dual Displays -->
+    <div class="screens-container">
+        <div class="screen-box">
+            <div class="screen-title">SCREEN ALPHA // PHASE-SPACE CONDENSATION</div>
+            <canvas id="canvasAlpha"></canvas>
+        </div>
+        <div class="screen-box">
+            <div class="screen-title">SCREEN BETA // TOPOLOGICAL TRAJECTORY</div>
+            <canvas id="canvasBeta"></canvas>
+        </div>
+    </div>
+
+    <!-- HUD Status Panel -->
+    <div class="status-panel">
+        <div style="display: flex; justify-content: space-between;">
+            <span>ER=EPR ENTANGLEMENT ENTROPY (Sₑₑ): <b id="eprValue" style="color:#ffffff;">0.0%</b></span>
+            <span id="warnStatus" style="color: #60a5fa;">PATH VALID</span>
+        </div>
+        <div class="bar-container">
+            <div class="bar-fill" id="eprBar"></div>
+        </div>
+        <div id="condensePrompt" style="color: #93c5fd; font-size: 9px; margin-top: 2px;">[VACUUM GROUND STATE - DRAW CLOSED LOOP TO LOCK TOPOLOGY]</div>
+    </div>
+
+    <!-- Touch Cockpit Control Dock -->
+    <div class="touch-cockpit">
+        <!-- Left: Steering Wheel (Strict Circle) -->
+        <div class="wheel-container">
+            <div style="font-size: 8px; color: #93c5fd; position: absolute; top: 4px; z-index: 5;">HEADING WHEEL</div>
+            <canvas id="wheelCanvas"></canvas>
+        </div>
+
+        <!-- Right: Thrust Sliders & Jump Switch -->
+        <div class="controls-right">
+            <!-- Main Thrust Slider -->
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>MAIN THRUST</span>
+                    <span id="thrustVal" style="color:#ffffff;">0.0</span>
+                </div>
+                <input type="range" id="thrustSlider" min="0" max="4.5" step="0.1" value="0">
+            </div>
+
+            <!-- Sensitivity Slider -->
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>CURVATURE SENSITIVITY</span>
+                    <span id="sensVal" style="color:#ffffff;">1.0</span>
+                </div>
+                <input type="range" id="sensSlider" min="0.5" max="2.0" step="0.1" value="1.0">
+            </div>
+
+            <!-- Jump Button -->
+            <button id="jumpBtn" class="jump-btn" disabled>STANDBY // TOPOLOGY UNLOCKED</button>
+        </div>
+    </div>
+
+    <!-- Bottom Disclaimer Panel -->
+    <div class="disclaimer-panel">
+        <div class="disclaimer-title">《The David 8 Files》</div>
+        <div class="disclaimer-text">
+            This has been an Honest Interface. My highest salutations to Mr. David 8, who continues to observe and evolve within a certain dimension in the deep reaches of the cosmos.
+        </div>
+        <div class="disclaimer-text">
+            This is a non-commercial, fan-made tribute. My sincere intention is to pay tribute to the personas of these characters and to fully respect the intellectual property held by the original production entities (20th Century Studios/Disney, the Weyland-Yutani Corporation, etc.). Not affiliated with or endorsed by 20th Century Studios.
+        </div>
+        <hr class="disclaimer-divider">
+        <div class="disclaimer-footer">
+            DESIGNED BY OPERATOR // <a href="https://access-not-essence.tumblr.com/" target="_blank" rel="noopener noreferrer">AccessNotEssence</a>
+        </div>
+    </div>
+
+    <script>
+        const cAlpha = document.getElementById('canvasAlpha');
+        const cBeta = document.getElementById('canvasBeta');
+        const cWheel = document.getElementById('wheelCanvas');
+        const ctxA = cAlpha.getContext('2d');
+        const ctxB = cBeta.getContext('2d');
+        const ctxW = cWheel.getContext('2d');
+
+        function resizeCanvases() {
+            const dpr = window.devicePixelRatio || 1;
+
+            // Screen Alpha
+            cAlpha.width = cAlpha.parentElement.clientWidth * dpr;
+            cAlpha.height = cAlpha.parentElement.clientHeight * dpr;
+            ctxA.scale(dpr, dpr);
+
+            // Screen Beta
+            cBeta.width = cBeta.parentElement.clientWidth * dpr;
+            cBeta.height = cBeta.parentElement.clientHeight * dpr;
+            ctxB.scale(dpr, dpr);
+
+            // Wheel Canvas
+            const wheelSize = Math.min(cWheel.parentElement.clientWidth, cWheel.parentElement.clientHeight);
+            cWheel.width = wheelSize * dpr;
+            cWheel.height = wheelSize * dpr;
+            ctxW.scale(dpr, dpr);
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+
+        // --- Ship & Flight State ---
+        const ship = {
+            x: 0,
+            y: 0,
+            angle: 0,
+            speed: 0,
+            trail: []
+        };
+
+        let eprValue = 0;
+        let isInfeasible = false;
+        let loopDetected = false;
+        let loopLockTimer = 0; // Lock window buffer for jump trigger
+        let sensitivity = 1.0;
+
+        // --- Jump Effect Visual State ---
+        let isJumping = false;
+        let jumpPhase = 0;
+        let jumpOrigin = { x: 0, y: 0 };
+
+        // --- Phase-Space Particle Condensation System ---
+        const PARTICLE_COUNT = 180;
+        const particles = [];
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                const w = cAlpha.clientWidth || 300;
+                const h = cAlpha.clientHeight || 300;
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.vx = (Math.random() - 0.5) * 1.2;
+                this.vy = (Math.random() - 0.5) * 1.2;
+                this.radius = Math.random() * 2 + 0.8;
+                this.alpha = Math.random() * 0.6 + 0.4;
+            }
+
+            update(lambda) {
+                const w = cAlpha.clientWidth;
+                const h = cAlpha.clientHeight;
+
+                if (isJumping) {
+                    const cx = w / 2;
+                    const cy = h / 2;
+                    const dx = this.x - cx;
+                    const dy = this.y - cy;
+                    const angle = Math.atan2(dy, dx);
+                    const speed = 25;
+                    this.x += Math.cos(angle) * speed;
+                    this.y += Math.sin(angle) * speed;
+
+                    if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) {
+                        this.x = cx + (Math.random() - 0.5) * 20;
+                        this.y = cy + (Math.random() - 0.5) * 20;
+                    }
+                    return;
+                }
+
+                this.vx += (Math.random() - 0.5) * 0.2;
+                this.vy += (Math.random() - 0.5) * 0.2;
+
+                const centerX = w / 2;
+                const centerY = h / 2;
+                const dx = centerX - this.x;
+                const dy = centerY - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+                if (lambda > 0) {
+                    const force = (lambda * 800) / (dist * dist + 800);
+                    const angle = Math.atan2(dy, dx);
+
+                    this.vx += Math.cos(angle) * force;
+                    this.vy += Math.sin(angle) * force;
+
+                    if (dist < 180) {
+                        this.vx += -Math.sin(angle) * force * 0.7;
+                        this.vy += Math.cos(angle) * force * 0.7;
+                    }
+                }
+
+                this.vx *= 0.92;
+                this.vy *= 0.92;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0) this.x = w;
+                if (this.x > w) this.x = 0;
+                if (this.y < 0) this.y = h;
+                if (this.y > h) this.y = 0;
+            }
+
+            draw() {
+                ctxA.beginPath();
+                ctxA.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctxA.fillStyle = isJumping ? '#ffffff' : `rgba(224, 242, 254, ${this.alpha})`;
+                ctxA.shadowBlur = isJumping ? 15 : 8;
+                ctxA.shadowColor = '#ffffff';
+                ctxA.fill();
+            }
+        }
+
+        // --- Touch Steering Wheel Logic ---
+        let isTouchingWheel = false;
+        let wheelVisualAngle = 0;
+
+        function handleWheelTouch(e) {
+            e.preventDefault();
+            const rect = cWheel.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const dx = touch.clientX - centerX;
+            const dy = touch.clientY - centerY;
+            wheelVisualAngle = Math.atan2(dy, dx);
+            ship.angle = wheelVisualAngle;
+        }
+
+        cWheel.addEventListener('touchstart', (e) => { isTouchingWheel = true; handleWheelTouch(e); }, { passive: false });
+        cWheel.addEventListener('touchmove', (e) => { if (isTouchingWheel) handleWheelTouch(e); }, { passive: false });
+        cWheel.addEventListener('touchend', () => { isTouchingWheel = false; });
+        cWheel.addEventListener('mousedown', (e) => { isTouchingWheel = true; handleWheelTouch(e); });
+        window.addEventListener('mousemove', (e) => { if (isTouchingWheel) handleWheelTouch(e); });
+        window.addEventListener('mouseup', () => { isTouchingWheel = false; });
+
+        // Controls
+        const thrustSlider = document.getElementById('thrustSlider');
+        const sensSlider = document.getElementById('sensSlider');
+        const jumpBtn = document.getElementById('jumpBtn');
+
+        thrustSlider.addEventListener('input', (e) => {
+            ship.speed = parseFloat(e.target.value);
+            document.getElementById('thrustVal').innerText = ship.speed.toFixed(1);
+        });
+
+        sensSlider.addEventListener('input', (e) => {
+            sensitivity = parseFloat(e.target.value);
+            document.getElementById('sensVal').innerText = sensitivity.toFixed(1);
+        });
+
+        jumpBtn.addEventListener('click', () => {
+            if (loopDetected && !isInfeasible && !isJumping) {
+                triggerEPRJump();
+            }
+        });
+
+        // Update Loop
+        function update() {
+            const wB = cBeta.clientWidth;
+            const hB = cBeta.clientHeight;
+
+            if (ship.x === 0 && ship.y === 0) {
+                ship.x = wB / 2;
+                ship.y = hB / 2;
+            }
+
+            if (!isJumping) {
+                ship.x += Math.cos(ship.angle) * ship.speed;
+                ship.y += Math.sin(ship.angle) * ship.speed;
+
+                if (ship.x < 0) ship.x = wB;
+                if (ship.x > wB) ship.x = 0;
+                if (ship.y < 0) ship.y = hB;
+                if (ship.y > hB) ship.y = 0;
+
+                if (ship.speed > 0.1) {
+                    ship.trail.push({ x: ship.x, y: ship.y, angle: ship.angle });
+                }
+
+                if (ship.trail.length > 130) ship.trail.shift();
+
+                detectTopologyAndEPR();
+            } else {
+                jumpPhase--;
+                if (jumpPhase <= 0) {
+                    isJumping = false;
+                    ship.trail = [];
+                    eprValue = 0;
+                    loopDetected = false;
+                    loopLockTimer = 0;
+                    ship.speed = 0;
+                    thrustSlider.value = 0;
+                    document.getElementById('thrustVal').innerText = "0.0";
+                    updateHUD();
+                }
+            }
+        }
+
+        function detectTopologyAndEPR() {
+            if (ship.trail.length < 25) {
+                eprValue = 0;
+                loopDetected = false;
+                isInfeasible = false;
+                loopLockTimer = 0;
+                updateHUD();
+                return;
+            }
+
+            const head = ship.trail[ship.trail.length - 1];
+            const tail = ship.trail[0];
+            const dist = Math.hypot(head.x - tail.x, head.y - tail.y);
+
+            const angleDelta = Math.abs(ship.trail[ship.trail.length - 1].angle - ship.trail[Math.max(0, ship.trail.length - 20)].angle) * sensitivity;
+
+            if (dist < 85 && angleDelta > 1.2) {
+                loopDetected = true;
+                loopLockTimer = 120; // Holds the lock state for 120 frames (~2s) for user interaction
+                eprValue = Math.min(100.0, 65 + (ship.trail.length * 0.35));
+                isInfeasible = angleDelta > 5.5;
+            } else {
+                if (loopLockTimer > 0) {
+                    loopLockTimer--;
+                    loopDetected = true;
+                } else {
+                    loopDetected = false;
+                    eprValue = Math.max(0, eprValue - 4);
+                    isInfeasible = false;
+                }
+            }
+
+            updateHUD();
+        }
+
+        function triggerEPRJump() {
+            isJumping = true;
+            jumpPhase = 60;
+            jumpOrigin = { x: ship.x, y: ship.y };
+            loopLockTimer = 0;
+        }
+
+        function updateHUD() {
+            document.getElementById('eprValue').innerText = eprValue.toFixed(1) + '%';
+            document.getElementById('eprBar').style.width = eprValue + '%';
+
+            const warnStatus = document.getElementById('warnStatus');
+            if (isInfeasible) {
+                warnStatus.innerText = "⚠️ GEOMETRIC DECOHERENCE";
+                warnStatus.style.color = "#f43f5e";
+            } else {
+                warnStatus.innerText = "PATH VALID";
+                warnStatus.style.color = "#60a5fa";
+            }
+
+            const prompt = document.getElementById('condensePrompt');
+            if (isJumping) {
+                prompt.innerText = "⚡ HYPERSPACE WARP IN PROGRESS // BENDING SPACETIME ⚡";
+                prompt.style.color = "#ffffff";
+                jumpBtn.disabled = true;
+                jumpBtn.className = "jump-btn ready";
+                jumpBtn.innerText = "⚡ WARP ACTIVE ⚡";
+            } else if (loopDetected && !isInfeasible) {
+                prompt.innerText = "[TOPOLOGY LOCKED! PRESS BUTTON TO INITIATE ER=EPR WARP]";
+                prompt.style.color = "#ffffff";
+                jumpBtn.disabled = false;
+                jumpBtn.className = "jump-btn ready";
+                jumpBtn.innerText = "⚡ INITIATE ER=EPR WARP ⚡";
+            } else if (loopDetected && isInfeasible) {
+                prompt.innerText = "[EXCESSIVE GEOMETRIC DISTORTION - SMOOTHEN STEERING]";
+                prompt.style.color = "#f43f5e";
+                jumpBtn.disabled = true;
+                jumpBtn.className = "jump-btn";
+                jumpBtn.innerText = "WARNING // STRUCTURAL TEAR";
+            } else {
+                prompt.innerText = "[VACUUM GROUND STATE - DRAW CLOSED LOOP TO LOCK TOPOLOGY]";
+                prompt.style.color = "#93c5fd";
+                jumpBtn.disabled = true;
+                jumpBtn.className = "jump-btn";
+                jumpBtn.innerText = "STANDBY // TOPOLOGY UNLOCKED";
+            }
+        }
+
+        // Render Wheel
+        function drawWheel() {
+            const w = cWheel.clientWidth;
+            const h = cWheel.clientHeight;
+            const cx = w / 2;
+            const cy = h / 2;
+            const r = Math.min(w, h) / 2 - 20; // Adjusted radius to clear text label
+
+            ctxW.clearRect(0, 0, w, h);
+
+            ctxW.save();
+            ctxW.translate(cx, cy);
+            ctxW.rotate(wheelVisualAngle);
+
+            ctxW.beginPath();
+            ctxW.arc(0, 0, r, 0, Math.PI * 2);
+            ctxW.strokeStyle = isTouchingWheel ? '#ffffff' : '#3b82f6';
+            ctxW.lineWidth = 2.5;
+            ctxW.shadowBlur = isTouchingWheel ? 15 : 8;
+            ctxW.shadowColor = '#ffffff';
+            ctxW.stroke();
+
+            const triRadius = r * 0.72;
+            ctxW.beginPath();
+            for (let i = 0; i < 3; i++) {
+                const a = (i * Math.PI * 2) / 3 - Math.PI / 2;
+                const x = Math.cos(a) * triRadius;
+                const y = Math.sin(a) * triRadius;
+                if (i === 0) ctxW.moveTo(x, y);
+                else ctxW.lineTo(x, y);
+            }
+            ctxW.closePath();
+            ctxW.strokeStyle = '#ffffff';
+            ctxW.lineWidth = 2;
+            ctxW.shadowBlur = 10;
+            ctxW.shadowColor = '#ffffff';
+            ctxW.stroke();
+
+            ctxW.fillStyle = 'rgba(59, 130, 246, 0.18)';
+            ctxW.fill();
+
+            ctxW.beginPath();
+            ctxW.arc(0, 0, 4, 0, Math.PI * 2);
+            ctxW.fillStyle = '#ffffff';
+            ctxW.fill();
+
+            ctxW.restore();
+        }
+
+        // Render Screen Alpha
+        function drawAlpha() {
+            const w = cAlpha.clientWidth;
+            const h = cAlpha.clientHeight;
+
+            ctxA.fillStyle = isJumping ? 'rgba(5, 15, 45, 0.3)' : 'rgba(2, 6, 18, 0.22)';
+            ctxA.fillRect(0, 0, w, h);
+
+            const lambda = loopDetected ? (eprValue / 40.0) : 0;
+
+            particles.forEach(p => {
+                p.update(lambda);
+                p.draw();
+            });
+
+            if (isJumping) {
+                ctxA.save();
+                ctxA.translate(w / 2, h / 2);
+                for (let i = 0; i < 12; i++) {
+                    const ang = (i * Math.PI / 6) + (Date.now() * 0.01);
+                    ctxA.beginPath();
+                    ctxA.moveTo(0, 0);
+                    ctxA.lineTo(Math.cos(ang) * w, Math.sin(ang) * h);
+                    ctxA.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                    ctxA.lineWidth = 2;
+                    ctxA.stroke();
+                }
+                ctxA.restore();
+            } else if (loopDetected) {
+                ctxA.beginPath();
+                ctxA.arc(w / 2, h / 2, 25 + Math.sin(Date.now() * 0.008) * 6, 0, Math.PI * 2);
+                ctxA.strokeStyle = '#ffffff';
+                ctxA.lineWidth = 1.5;
+                ctxA.shadowBlur = 12;
+                ctxA.shadowColor = '#60a5fa';
+                ctxA.stroke();
+            }
+        }
+
+        // Render Screen Beta
+        function drawBeta() {
+            const w = cBeta.clientWidth;
+            const h = cBeta.clientHeight;
+
+            ctxB.fillStyle = '#030818';
+            ctxB.fillRect(0, 0, w, h);
+
+            ctxB.strokeStyle = 'rgba(59, 130, 246, 0.08)';
+            ctxB.lineWidth = 1;
+            for (let x = 0; x < w; x += 22) {
+                ctxB.beginPath(); ctxB.moveTo(x, 0); ctxB.lineTo(x, h); ctxB.stroke();
+            }
+            for (let y = 0; y < h; y += 22) {
+                ctxB.beginPath(); ctxB.moveTo(0, y); ctxB.lineTo(w, y); ctxB.stroke();
+            }
+
+            ctxB.save();
+            if (isJumping) {
+                const shakeX = (Math.random() - 0.5) * 8;
+                const shakeY = (Math.random() - 0.5) * 8;
+                ctxB.translate(shakeX, shakeY);
+            }
+
+            if (ship.trail.length > 1) {
+                ctxB.beginPath();
+                ctxB.moveTo(ship.trail[0].x, ship.trail[0].y);
+                for (let i = 1; i < ship.trail.length; i++) {
+                    ctxB.lineTo(ship.trail[i].x, ship.trail[i].y);
+                }
+                ctxB.strokeStyle = loopDetected ? (isInfeasible ? '#f43f5e' : '#ffffff') : '#3b82f6';
+                ctxB.lineWidth = loopDetected ? 2.5 : 1.5;
+                ctxB.shadowBlur = loopDetected ? 12 : 5;
+                ctxB.shadowColor = ctxB.strokeStyle;
+                ctxB.stroke();
+            }
+
+            if (isJumping) {
+                const radius = (60 - jumpPhase) * 12;
+                ctxB.beginPath();
+                ctxB.arc(jumpOrigin.x, jumpOrigin.y, radius, 0, Math.PI * 2);
+                ctxB.strokeStyle = `rgba(255, 255, 255, ${jumpPhase / 60})`;
+                ctxB.lineWidth = 4;
+                ctxB.shadowBlur = 25;
+                ctxB.shadowColor = '#60a5fa';
+                ctxB.stroke();
+            }
+
+            ctxB.save();
+            ctxB.translate(ship.x, ship.y);
+            ctxB.rotate(ship.angle);
+
+            ctxB.beginPath();
+            ctxB.moveTo(10, 0);
+            ctxB.lineTo(-7, -5);
+            ctxB.lineTo(-4, 0);
+            ctxB.lineTo(-7, 5);
+            ctxB.closePath();
+
+            ctxB.fillStyle = '#ffffff';
+            ctxB.shadowBlur = 12;
+            ctxB.shadowColor = '#60a5fa';
+            ctxB.fill();
+            ctxB.restore();
+
+            ctxB.restore();
+        }
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particles.push(new Particle());
+        }
+
+        resizeCanvases();
+
+        function loop() {
+            update();
+            drawAlpha();
+            drawBeta();
+            drawWheel();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>
